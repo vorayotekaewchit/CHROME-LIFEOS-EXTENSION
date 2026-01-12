@@ -50,7 +50,7 @@ export function PlanScreen({ missions, streak, onStartDay }: PlanScreenProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="bg-white rounded-lg border border-neutral-200 divide-y divide-neutral-100"
+          className="mission-card mission-card-divider"
         >
           {missions.map((mission, idx) => (
             <motion.div
@@ -69,7 +69,7 @@ export function PlanScreen({ missions, streak, onStartDay }: PlanScreenProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
           onClick={onStartDay}
-          className="w-full px-4 py-2.5 text-sm rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors shadow-md shadow-orange-500/20"
+          className="w-full px-4 py-2.5 text-sm rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-smooth shadow-md shadow-orange-500/20 hover-lift"
         >
           Start day
         </motion.button>

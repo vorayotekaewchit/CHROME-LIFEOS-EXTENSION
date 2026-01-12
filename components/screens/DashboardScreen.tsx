@@ -78,7 +78,7 @@ export function DashboardScreen({
             className="space-y-2"
           >
             <h2 className="text-sm font-semibold text-neutral-900">Today's missions</h2>
-            <div className="bg-white rounded-lg border border-neutral-200">
+            <div className="mission-card mission-card-divider">
               {missions.map((mission, idx) => (
                 <motion.div
                   key={mission.id}
@@ -86,7 +86,7 @@ export function DashboardScreen({
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 + idx * 0.1 }}
                 >
-                  <MissionRow mission={mission} />
+                  <MissionRow mission={mission} isDraggable={false} />
                 </motion.div>
               ))}
             </div>
@@ -124,7 +124,7 @@ export function DashboardScreen({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
           onClick={onResetDay}
-          className="w-full px-4 py-2.5 text-sm rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition-colors"
+          className="w-full px-4 py-2.5 text-sm rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition-smooth"
         >
           Reset tomorrow
         </motion.button>

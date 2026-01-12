@@ -13,7 +13,7 @@ export function MissionRow({ mission, isDraggable = false }: MissionRowProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   
   return (
-    <div className="px-3 py-2.5 border-b border-neutral-100 last:border-b-0 hover:bg-white/30 transition-colors group">
+    <div className="px-3 py-2.5 border-b border-dashed border-neutral-200 last:border-b-0 hover:bg-white/30 transition-colors group">
       <div className="flex items-start gap-2">
         {isDraggable && (
           <GripVertical className="w-4 h-4 text-neutral-300 mt-0.5 flex-shrink-0" />

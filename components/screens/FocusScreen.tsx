@@ -228,7 +228,7 @@ export function FocusScreen({
             {!isRunning && timeRemaining > 0 && (
               <button
                 onClick={() => setIsRunning(true)}
-                className="px-4 py-2 text-sm rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                className="px-4 py-2 text-sm rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-smooth"
               >
                 Start timer
               </button>
@@ -237,7 +237,7 @@ export function FocusScreen({
             {isRunning && (
               <button
                 onClick={() => setIsRunning(false)}
-                className="px-4 py-2 text-sm rounded-lg bg-neutral-100 text-neutral-600 hover:bg-neutral-200 transition-colors"
+                className="px-4 py-2 text-sm rounded-lg bg-neutral-100 text-neutral-600 hover:bg-neutral-200 transition-smooth"
               >
                 Pause
               </button>
@@ -249,14 +249,14 @@ export function FocusScreen({
         <div className="space-y-2">
           <button
             onClick={handleComplete}
-            className="w-full px-4 py-2.5 text-sm rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors shadow-md shadow-orange-500/20"
+            className="w-full px-4 py-2.5 text-sm rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-smooth shadow-md shadow-orange-500/20 hover-lift"
           >
             Complete mission
           </button>
           
           <button
             onClick={handleSkip}
-            className="w-full px-4 py-2.5 text-sm rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition-colors"
+            className="w-full px-4 py-2.5 text-sm rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition-smooth"
           >
             Not today → Move on
           </button>

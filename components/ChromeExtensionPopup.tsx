@@ -170,16 +170,16 @@ export function ChromeExtensionPopup() {
   
   if (isLoading) {
     return (
-      <div className="w-[360px] h-[500px] flex items-center justify-center bg-white">
+      <div className="extension-container items-center justify-center">
         <div className="text-neutral-500">Loading...</div>
       </div>
     );
   }
   
   return (
-    <div className="w-[360px] h-[500px] bg-white flex flex-col relative overflow-hidden">
+    <div className="extension-container">
       {/* Scrollable content area */}
-      <div className="flex-1 overflow-y-auto pb-14 scrollbar-thin">
+      <div className="extension-scrollable">
         {state.currentView === "input" && (
           <InputScreen 
             onGeneratePlan={handleGeneratePlan}
