@@ -6,7 +6,7 @@ export function MomentumRow({ last7Days }: MomentumRowProps) {
   const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-3">
       <h3 className="text-[9px] uppercase tracking-widest text-neutral-400 font-bold">Momentum</h3>
       <div className="grid grid-cols-7 gap-0.5">
         {last7Days.map((count, idx) => (

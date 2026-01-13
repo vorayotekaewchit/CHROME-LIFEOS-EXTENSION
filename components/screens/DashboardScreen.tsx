@@ -31,9 +31,9 @@ export function DashboardScreen({
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-4"
+          className="space-y-3 p-4 rounded-lg border-2 border-dashed border-neutral-200"
         >
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between">
             <h1 className="text-lg font-bold text-neutral-900">Life OS</h1>
             <div className="flex gap-1.5">
               <div className="neumorphic-inset px-2 py-0.5 rounded-full text-[9px] font-bold text-orange-600">
@@ -44,8 +44,8 @@ export function DashboardScreen({
               </div>
             </div>
           </div>
-          <div className="bg-white/40 rounded-lg p-3 border border-white/20">
-            <div className="flex justify-between items-center text-[10px] text-neutral-500 mb-1">
+          <div className="bg-white/40 rounded-lg p-4 border border-white/20 space-y-3">
+            <div className="flex justify-between items-center text-[10px] text-neutral-500">
               <span>Daily Progress</span>
               <span>{completionRate}%</span>
             </div>
@@ -64,7 +64,7 @@ export function DashboardScreen({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="glass-card p-3"
+          className="space-y-3 p-4 rounded-lg border-2 border-dashed border-neutral-200"
         >
           <MomentumRow last7Days={last7Days} />
         </motion.div>
