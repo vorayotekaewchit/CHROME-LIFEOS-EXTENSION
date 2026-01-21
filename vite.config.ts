@@ -8,6 +8,7 @@ const __dirname = dirname(__filename);
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: './', // Use relative paths for Chrome extension
   plugins: [react()],
   build: {
     outDir: 'dist',

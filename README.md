@@ -1,8 +1,28 @@
-# Chrome LifeOS Extension
+# LifeOS - Chrome Extension & Landing Page
+
+This repository contains two separate projects:
+
+1. **Chrome Extension** (root) - The main LifeOS productivity extension
+2. **Landing Page** (`/landing`) - Marketing website built with Next.js
+
+## 📦 Project Structure
+
+```
+LifeOS Extension/
+├── landing/              # Landing page (Next.js) - separate project
+│   ├── package.json      # Landing page dependencies
+│   ├── app/              # Next.js app router
+│   └── components/       # Landing page components
+├── components/           # Extension components
+├── dist/                 # Extension build output
+└── package.json          # Extension dependencies
+```
+
+## 🔌 Chrome Extension
 
 A Chrome extension built with React, TypeScript, Vite, and Tailwind CSS.
 
-## Development
+### Development
 
 1. Install dependencies:
 ```bash
@@ -69,3 +89,58 @@ The `Life-OS-Productivity-App` folder in the root directory is a reference proje
 - The popup is sized to 360x500px
 - Icons referenced in manifest.json should be added to the dist folder (or create placeholder icons)
 - The extension includes mission-based productivity features with XP, streaks, and progress tracking
+
+---
+
+## 🌐 Landing Page
+
+The landing page is a **separate Next.js project** located in the `/landing` folder.
+
+### Quick Start
+
+```bash
+cd landing
+npm install
+npm run dev
+```
+
+Visit [http://localhost:3000](http://localhost:3000) to view the landing page.
+
+### Building the Landing Page
+
+```bash
+cd landing
+npm run build
+npm start
+```
+
+### Deployment
+
+The landing page is ready to deploy to Vercel, Netlify, or Cloudflare Pages. See `landing/README.md` for full documentation.
+
+**Note:** The landing page and extension are completely independent projects with separate:
+- Dependencies (`package.json`)
+- Build systems (Next.js vs Vite)
+- Build outputs (`.next/` vs `dist/`)
+- Development servers
+
+## Security
+
+LifeOS implements the following security measures:
+
+### Landing Page
+- ✅ Content Security Policy (CSP) - Prevents XSS attacks
+- ✅ X-Frame-Options - Prevents clickjacking
+- ✅ X-Content-Type-Options - Prevents MIME sniffing
+- ✅ Strict-Transport-Security - Enforces HTTPS
+- ✅ Referrer-Policy - Protects user privacy
+- ✅ Permissions-Policy - Disables unnecessary browser features
+
+### Chrome Extension
+- ✅ Minimal permissions (storage, notifications, alarms only)
+- ✅ Local-first data storage (no server)
+- ✅ Chrome Storage API (encrypted at rest)
+- ✅ Manifest V3 with strict CSP
+
+### Reporting Security Issues
+See [SECURITY.md](SECURITY.md) for our security policy.

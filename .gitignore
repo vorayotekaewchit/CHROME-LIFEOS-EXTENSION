@@ -4,6 +4,9 @@ package-lock.json
 
 # Build output
 dist/
+landing/.next/
+landing/out/
+landing/.vercel
 
 # Environment variables
 .env
