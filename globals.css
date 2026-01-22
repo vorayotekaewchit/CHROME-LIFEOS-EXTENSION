@@ -253,11 +253,13 @@ html, body {
 
 /* Mission card styles - Tailwind @apply directives */
 .mission-card {
-  @apply bg-white rounded-lg border border-dashed border-neutral-300;
+  @apply rounded-lg border border-dashed;
+  /* Background and border colors are set inline to support dark mode */
 }
 
 .mission-card-divider {
-  @apply divide-y divide-dashed divide-neutral-200;
+  @apply divide-y divide-dashed;
+  /* Divider colors are set inline to support dark mode */
 }
 
 /* Text truncation utilities */

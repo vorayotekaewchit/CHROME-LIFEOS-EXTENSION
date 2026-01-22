@@ -1,5 +1,5 @@
 /**
- * Storage utilities with chrome.storage.sync support and localStorage fallback
+ * Storage utilities with chrome.storage.local support and localStorage fallback
  */
 
 // Declare chrome for TypeScript
@@ -15,62 +15,114 @@ export function isMission(value: unknown): value is Mission {
   
   return (
     typeof obj.id === "string" &&
-    typeof obj.title === "string" &&
-    typeof obj.tag === "string" &&
-    typeof obj.duration === "number" &&
-    (obj.why === undefined || typeof obj.why === "string") &&
-    (obj.completed === undefined || typeof obj.completed === "boolean") &&
-    (obj.completedAt === undefined || obj.completedAt instanceof Date || typeof obj.completedAt === "string")
+    typeof obj.text === "string" &&
+    typeof obj.completed === "boolean"
   );
 }
 
 /**
- * Type guard to validate if a value is a valid AppState object.
+ * Type guard to validate if a value is a valid HistoryEntry object.
  */
-export function isAppState(value: unknown): value is AppState {
+export function isHistoryEntry(value: unknown): value is HistoryEntry {
   if (typeof value !== "object" || value === null) return false;
   
   const obj = value as Record<string, unknown>;
   
   return (
+    typeof obj.date === "string" &&
     Array.isArray(obj.missions) &&
     obj.missions.every(isMission) &&
-    typeof obj.xp === "number" &&
-    typeof obj.streak === "number" &&
-    Array.isArray(obj.last7Days) &&
-    obj.last7Days.length === 7 &&
-    obj.last7Days.every((item) => typeof item === "number") &&
-    typeof obj.currentView === "string" &&
-    ["input", "plan", "focus", "dashboard"].includes(obj.currentView) &&
-    typeof obj.lastResetDate === "string" &&
-    (typeof obj.weekStartDate === "string" || obj.weekStartDate === undefined)
+    typeof obj.totalCompleted === "number"
   );
 }
+
+/**
+ * Type guard to validate if a value is a valid Momentum object.
+ */
+export function isMomentum(value: unknown): value is Momentum {
+  if (typeof value !== "object" || value === null) return false;
+  
+  const obj = value as Record<string, unknown>;
+  
+  return (
+    typeof obj.currentWeek === "number" &&
+    typeof obj.total === "number" &&
+    typeof obj.startDate === "string"
+  );
+}
+
+/**
+ * Type guard to validate if a value is a valid LifeOSState object.
+ */
+export function isLifeOSState(value: unknown): value is LifeOSState {
+  if (typeof value !== "object" || value === null) return false;
+  
+  const obj = value as Record<string, unknown>;
+  
+  return (
+    Array.isArray(obj.history) &&
+    obj.history.every(isHistoryEntry) &&
+    isMomentum(obj.momentum) &&
+    typeof obj.lastResetDate === "string"
+  );
+}
+
+export type MissionTag = "Focus" | "Health" | "Money" | "Admin" | "Relationships";
 
 export interface Mission {
   id: string;
   title: string;
   tag: MissionTag;
-  duration: number;
+  duration: number; // in minutes
   why?: string;
-  completed?: boolean;
+  completed: boolean;
   completedAt?: Date;
 }
 
-export type MissionTag = "Focus" | "Health" | "Money" | "Admin" | "Relationships";
-
-export interface AppState {
+export interface HistoryEntry {
+  date: string; // YYYY-MM-DD format
   missions: Mission[];
-  xp: number;
-  streak: number;
-  last7Days: number[];
-  currentView: "input" | "plan" | "focus" | "dashboard";
-  lastResetDate: string;
-  weekStartDate: string; // Date string of Monday for the current week
+  totalCompleted: number;
+}
+
+export interface Momentum {
+  currentWeek: number; // Current week's total (0-100)
+  total: number; // Total momentum accumulated
+  startDate: string; // Date when momentum tracking started
+}
+
+export interface LifeOSState {
+  history: HistoryEntry[];
+  momentum: Momentum;
+  lastResetDate: string; // Last date when missions were reset
 }
 
 /**
- * Safely parse JSON from storage with type validation and chrome.storage.sync support
+ * Get today's date in YYYY-MM-DD format
+ */
+export function getTodayDateString(): string {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Get yesterday's date in YYYY-MM-DD format
+ */
+export function getYesterdayDateString(): string {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Get date string in YYYY-MM-DD format from a Date object
+ */
+export function getDateString(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Safely parse JSON from storage with type validation and chrome.storage.local support
  */
 export async function safeGetFromStorage<T>(
   key: string,
@@ -78,10 +130,10 @@ export async function safeGetFromStorage<T>(
   fallback: T
 ): Promise<T> {
   try {
-    // Try chrome.storage.sync first
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+    // Try chrome.storage.local first
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
       return new Promise((resolve) => {
-        chrome.storage.sync.get(key, (result: any) => {
+        chrome.storage.local.get(key, (result: any) => {
           if (result[key]) {
             resolve(processResult(result[key], validator, fallback));
           } else {
@@ -115,28 +167,35 @@ export async function safeGetFromStorage<T>(
 
 function processResult<T>(parsed: any, validator: (value: unknown) => value is T, fallback: T): T {
   // Handle Date strings - convert completedAt strings back to Date objects
-  if (validator(parsed) && Array.isArray((parsed as any).missions)) {
-    (parsed as any).missions = (parsed as any).missions.map((mission: Mission) => {
-      if (mission.completedAt && typeof mission.completedAt === "string") {
-        return {
-          ...mission,
-          completedAt: new Date(mission.completedAt),
-        };
+  if (validator(parsed) && Array.isArray((parsed as any).history)) {
+    (parsed as any).history = (parsed as any).history.map((entry: HistoryEntry) => {
+      if (entry.missions) {
+        entry.missions = entry.missions.map((mission: Mission) => {
+          if (mission.completedAt && typeof mission.completedAt === "string") {
+            return {
+              ...mission,
+              completedAt: new Date(mission.completedAt),
+            };
+          }
+          return mission;
+        });
       }
-      return mission;
+      return entry;
     });
   }
   return validator(parsed) ? parsed : fallback;
 }
 
 /**
- * Safely write JSON to storage with chrome.storage.sync support
+ * Safely write JSON to storage with chrome.storage.local support
  */
 export async function safeSetToStorage<T>(key: string, value: T): Promise<boolean> {
   try {
-    // Save to chrome.storage.sync
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-      chrome.storage.sync.set({ [key]: value });
+    // Save to chrome.storage.local
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      await new Promise<void>((resolve) => {
+        chrome.storage.local.set({ [key]: value }, () => resolve());
+      });
     }
     
     // Always fallback/sync to localStorage
@@ -149,8 +208,23 @@ export async function safeSetToStorage<T>(key: string, value: T): Promise<boolea
 }
 
 /**
- * Get the Monday of the current week as a date string
- * Returns the date string for the Monday of the week containing the given date
+ * Get default LifeOSState
+ */
+export function getDefaultLifeOSState(): LifeOSState {
+  const today = getTodayDateString();
+  return {
+    history: [],
+    momentum: {
+      currentWeek: 0,
+      total: 0,
+      startDate: today
+    },
+    lastResetDate: today
+  };
+}
+
+/**
+ * Get the Monday of the current week as a date string (YYYY-MM-DD)
  */
 export function getWeekStartDate(date: Date = new Date()): string {
   const d = new Date(date);
@@ -158,7 +232,7 @@ export function getWeekStartDate(date: Date = new Date()): string {
   const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
   const monday = new Date(d.setDate(diff));
   monday.setHours(0, 0, 0, 0);
-  return monday.toDateString();
+  return getDateString(monday);
 }
 
 /**

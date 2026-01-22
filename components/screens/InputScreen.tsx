@@ -1,23 +1,26 @@
 import { useState } from "react";
-import { Plus, X, RotateCcw } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { MissionTagChips } from "../MissionTagChips";
-import { motion } from "motion/react";
 import { Mission, MissionTag } from "../../utils/storage";
+import { DarkModeToggle } from "../DarkModeToggle";
+import { useLifeOStore } from "../../hooks/useLifeOState";
 
 interface InputScreenProps {
   onGeneratePlan: (missions: Mission[]) => void;
-  previousMissions: Mission[];
+  yesterdayIncomplete: Mission[];
+  onAddYesterdayMission: (mission: Mission) => void;
 }
 
 interface DraftMission {
   title: string;
-  tag: MissionTag;
+  tag?: MissionTag;
   why?: string;
 }
 
-export function InputScreen({ onGeneratePlan, previousMissions }: InputScreenProps) {
+export function InputScreen({ onGeneratePlan, yesterdayIncomplete, onAddYesterdayMission }: InputScreenProps) {
   const [missions, setMissions] = useState<DraftMission[]>([]);
   const [currentMission, setCurrentMission] = useState<Partial<DraftMission>>({});
+  const { darkMode } = useLifeOStore();
   
   const addMission = () => {
     if (currentMission.title && currentMission.tag) {
@@ -30,107 +33,125 @@ export function InputScreen({ onGeneratePlan, previousMissions }: InputScreenPro
     setMissions(missions.filter((_, i) => i !== index));
   };
   
-  const importFromYesterday = () => {
-    const incompleteMissions = previousMissions.filter(m => !m.completed).slice(0, 3);
-    setMissions(incompleteMissions.map(m => ({
-      title: m.title,
-      tag: m.tag,
-      why: m.why
-    })));
+  const handleAddYesterday = (mission: Mission) => {
+    onAddYesterdayMission(mission);
+    if (!missions.find(m => m.title === mission.title)) {
+      setMissions([...missions, {
+        title: mission.title,
+        tag: mission.tag,
+        why: mission.why
+      }]);
+    }
   };
   
   const handleGeneratePlan = () => {
     const finalMissions: Mission[] = missions.map((m, idx) => ({
       id: `mission-${Date.now()}-${idx}`,
       title: m.title,
-      tag: m.tag,
+      tag: m.tag!,
+      duration: Math.floor(Math.random() * 11) + 15,
       why: m.why,
-      duration: Math.floor(Math.random() * 11) + 15, // 15-25 mins
       completed: false
     }));
     onGeneratePlan(finalMissions);
   };
   
+  const bgClass = darkMode 
+    ? "bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900"
+    : "bg-gradient-to-br from-neutral-50 via-white to-neutral-50";
+  const cardClass = darkMode
+    ? "border-neutral-700 bg-neutral-800/80"
+    : "border-neutral-200 bg-white";
+  const textClass = darkMode ? "text-white" : "text-neutral-900";
+  const textMutedClass = darkMode ? "text-neutral-400" : "text-neutral-600";
+  const inputClass = darkMode
+    ? "bg-neutral-800 border-neutral-700 text-white placeholder-neutral-500 focus:ring-orange-500"
+    : "bg-white border-neutral-200 text-neutral-900 placeholder-neutral-500 focus:ring-orange-500";
+
   return (
-    <div className="min-h-full bg-white">
+    <div className={`min-h-full ${bgClass}`}>
       <div className="max-w-md mx-auto px-4 py-4 space-y-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          <h1 className="text-lg font-semibold text-neutral-900 mb-1">Pick today's missions</h1>
-          <p className="text-xs text-neutral-500">Three missions a day. That's it.</p>
-        </motion.div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className={`text-lg font-semibold ${textClass} mb-1`}>Pick today's missions</h1>
+            <p className={`text-xs ${textMutedClass}`}>Three missions a day. That's it.</p>
+          </div>
+          <DarkModeToggle />
+        </div>
         
-        {previousMissions.length > 0 && (
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            onClick={importFromYesterday}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50 active:bg-neutral-100 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Import from yesterday
-          </motion.button>
+        {yesterdayIncomplete.length > 0 && (
+          <div className={`space-y-2 p-4 rounded-xl border ${cardClass}`}>
+            <h2 className={`text-sm font-semibold ${textClass} mb-2`}>Yesterday's Incomplete</h2>
+            <p className={`text-xs ${textMutedClass} mb-3`}>Complete today again?</p>
+            <div className="space-y-2">
+              {yesterdayIncomplete.map((mission) => (
+                <button
+                  key={mission.id}
+                  onClick={() => handleAddYesterday(mission)}
+                  className={`w-full text-left p-3 rounded-lg border transition-all text-sm ${
+                    darkMode
+                      ? "border-neutral-700 bg-neutral-700/50 hover:bg-neutral-700 hover:border-orange-500/50 text-neutral-300 hover:text-white"
+                      : "border-neutral-200 bg-white hover:bg-neutral-50 hover:border-orange-300 text-neutral-700 hover:text-neutral-900"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-orange-500">+</span>
+                    <span>{mission.title}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
         )}
         
-        {/* Added missions */}
         {missions.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="space-y-2"
-          >
+          <div className="space-y-2">
             {missions.map((mission, idx) => (
-              <motion.div
+              <div
                 key={idx}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                className="flex items-start gap-2 p-3 rounded-lg bg-gradient-to-br from-neutral-50 to-white border border-neutral-200 shadow-sm hover:shadow-md transition-shadow duration-200"
+                className={`flex items-start gap-2 p-3 rounded-lg border ${cardClass} shadow-sm`}
               >
                 <div className="flex-1">
-                  <h3 className="text-sm font-medium text-neutral-900 mb-0.5">{mission.title}</h3>
-                  <p className="text-xs text-neutral-500">{mission.tag}</p>
+                  <h3 className={`text-sm font-medium ${textClass} mb-0.5`}>{mission.title}</h3>
+                  {mission.tag && (
+                    <p className={`text-xs ${textMutedClass}`}>{mission.tag}</p>
+                  )}
                 </div>
                 <button
                   onClick={() => removeMission(idx)}
-                  className="p-1 text-neutral-400 hover:text-neutral-600 transition-colors"
-                  aria-label={`Remove mission: ${mission.title}`}
-                  title={`Remove mission: ${mission.title}`}
+                  className={`p-1 transition-colors ${
+                    darkMode ? "text-neutral-400 hover:text-neutral-200" : "text-neutral-400 hover:text-neutral-600"
+                  }`}
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         )}
         
-        {/* Add new mission form */}
         {missions.length < 3 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="space-y-3 p-4 rounded-xl border-2 border-dashed border-neutral-200 bg-gradient-to-br from-neutral-50/50 to-white hover:border-neutral-300 transition-colors duration-200"
-          >
+          <div className={`space-y-3 p-4 rounded-xl border-2 border-dashed ${cardClass}`}>
             <div>
-              <label className="block text-xs font-medium text-neutral-700 mb-1.5">
+              <label className={`block text-xs font-medium ${textMutedClass} mb-1.5`}>
                 Mission {missions.length + 1}
               </label>
               <input
                 type="text"
                 value={currentMission.title || ""}
                 onChange={(e) => setCurrentMission({ ...currentMission, title: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && currentMission.title && currentMission.tag) {
+                    addMission();
+                  }
+                }}
                 placeholder="e.g., Write first draft of proposal"
-                className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className={`w-full px-3 py-2 text-sm rounded-lg border ${inputClass} focus:outline-none focus:ring-2 focus:border-transparent`}
               />
             </div>
             
             <div>
-              <label className="block text-xs font-medium text-neutral-700 mb-1.5">Tag</label>
+              <label className={`block text-xs font-medium ${textMutedClass} mb-1.5`}>Tag</label>
               <MissionTagChips
                 selectedTag={currentMission.tag}
                 onSelect={(tag) => setCurrentMission({ ...currentMission, tag })}
@@ -138,14 +159,14 @@ export function InputScreen({ onGeneratePlan, previousMissions }: InputScreenPro
             </div>
             
             <div>
-              <label className="block text-xs font-medium text-neutral-700 mb-1.5">
+              <label className={`block text-xs font-medium ${textMutedClass} mb-1.5`}>
                 Why? (optional)
               </label>
               <textarea
                 value={currentMission.why || ""}
                 onChange={(e) => setCurrentMission({ ...currentMission, why: e.target.value })}
                 placeholder="Helps keep motivation clear"
-                className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                className={`w-full px-3 py-2 text-sm rounded-lg border ${inputClass} focus:outline-none focus:ring-2 focus:border-transparent resize-none`}
                 rows={2}
               />
             </div>
@@ -153,24 +174,25 @@ export function InputScreen({ onGeneratePlan, previousMissions }: InputScreenPro
             <button
               onClick={addMission}
               disabled={!currentMission.title || !currentMission.tag}
-              className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg bg-neutral-100 text-neutral-700 hover:bg-neutral-200 active:bg-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className={`w-full flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                darkMode
+                  ? "bg-neutral-700 text-neutral-200 hover:bg-neutral-600 active:bg-neutral-500"
+                  : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200 active:bg-neutral-300"
+              }`}
             >
               <Plus className="w-3.5 h-3.5" />
               Add Mission
             </button>
-          </motion.div>
+          </div>
         )}
         
-        {/* Generate plan button */}
         {missions.length > 0 && (
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+          <button
             onClick={handleGeneratePlan}
-            className="w-full px-4 py-2.5 text-sm font-semibold rounded-lg bg-orange-500 text-white hover:bg-orange-600 active:bg-orange-700 transition-all duration-200 shadow-md shadow-orange-500/20 hover:shadow-lg hover:shadow-orange-500/30 hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full px-4 py-2.5 text-sm font-semibold rounded-lg bg-orange-500 text-white hover:bg-orange-600 active:bg-orange-700 transition-all shadow-md shadow-orange-500/20"
           >
             Generate plan
-          </motion.button>
+          </button>
         )}
       </div>
     </div>
